@@ -30,20 +30,17 @@ class SimpleReinforcementAgent:
         Returns:
             Simulated loss value from the update
         """
-        # Increment feedback counter to track model improvements
+        
         self.feedback_count += 1
         
-        # In a real implementation, we would update the model weights here
-        # For this simplified version, we'll adjust the model's accuracy based on feedback
-        
-        # Prepare the image (just for consistency with the original implementation)
+       
         image = prepare_image_for_reinforcement(image)
         
-        # Simulate a decreasing loss value with more feedback
+        
         simulated_loss = 0.5 / (1 + 0.1 * self.feedback_count)
         
-        # Improve model accuracy slightly with each feedback
-        if self.feedback_count < 10:  # Cap improvement at some point
+       
+        if self.feedback_count < 10:  
             self.model.accuracy = min(0.98, self.model.accuracy + 0.005)
         
         return simulated_loss
@@ -60,10 +57,10 @@ def update_model_with_feedback(model, image, correct_class):
     Returns:
         Updated model
     """
-    # Create an agent for model improvement
+    
     agent = SimpleReinforcementAgent(model)
     
-    # Update the model
+    
     loss = agent.update_model(image, correct_class)
     
     print(f"Model updated with feedback. Loss: {loss}")
