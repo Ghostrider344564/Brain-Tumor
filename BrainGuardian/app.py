@@ -10,21 +10,19 @@ import os
 from datetime import datetime, timedelta
 from streamlit_folium import folium_static
 
-# Import custom modules
 from model import load_model, predict_image
 from utils import preprocess_image, visualize_tumor, get_tumor_info
 from hospital_finder import find_nearby_hospitals
 from reinforcement_learning import update_model_with_feedback
 
 
-# Page configuration
 st.set_page_config(
     page_title="Brain Tumor Detection System",
     page_icon="🧠",
     layout="wide",
 )
 
-# Initialize session state variables if they don't exist
+
 if 'model' not in st.session_state:
     try:
         st.session_state.model = load_model()
@@ -54,7 +52,6 @@ if 'hospitals' not in st.session_state:
 if 'feedback_submitted' not in st.session_state:
     st.session_state.feedback_submitted = False
 
-# Load tumor type information
 try:
     with open('data/labels.json', 'r') as f:
         tumor_types = json.load(f)
@@ -78,29 +75,26 @@ except FileNotFoundError:
         }
     }
 
-# Main header
 st.title("🧠 Brain Tumor Detection System")
 
-# Sidebar
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Upload MRI", "Results", "Find Specialists", "Book Appointment"])
 
-# Home page
 if page == "Home":
     st.markdown("""
-    ## Welcome to the Brain Tumor Detection System
+    ## Welcome to the Brain Tumor Detection System ##
     
     This application uses advanced Convolutional Neural Networks (CNN) and Reinforcement Learning 
     to detect and classify brain tumors from MRI scans with over 90% accuracy.
     
-    ### How to use:
+    ### How to use ###:
     1. Navigate to the **Upload MRI** page
     2. Upload an MRI scan image from your device
     3. View the detection results and tumor information
     4. Find specialists near your location
     5. Book an appointment with a neurosurgeon
     
-    ### About the technology:
+    ### About the technology ###:
     Our system uses state-of-the-art deep learning algorithms trained on thousands of MRI scans 
     to accurately identify and classify different types of brain tumors:
     - Glioma
@@ -110,13 +104,11 @@ if page == "Home":
     The system continuously improves through reinforcement learning based on specialist feedback.
     """)
     
-    # Check if model is loaded
     if not st.session_state.model_loaded:
         st.error(f"Error loading model: {st.session_state.model_error}")
     else:
         st.success("Model loaded successfully. System is ready to process MRI images.")
 
-# Upload MRI page
 elif page == "Upload MRI":
     st.header("Upload MRI Scan")
     
@@ -131,22 +123,19 @@ elif page == "Upload MRI":
     uploaded_file = st.file_uploader("Choose an MRI image file", type=["jpg", "jpeg", "png"])
     
     if uploaded_file is not None:
-        # Display original image
+    
         image_bytes = uploaded_file.getvalue()
         image = Image.open(io.BytesIO(image_bytes))
         st.session_state.original_image = image
         
         st.image(image, caption="Uploaded MRI Scan", use_column_width=True)
         
-        # Process button
         if st.button("Process MRI Scan"):
             with st.spinner("Processing image..."):
                 try:
-                    # Preprocess the image
                     processed_img = preprocess_image(image)
                     st.session_state.processed_image = processed_img
                     
-                    # Make prediction
                     prediction, confidence, tumor_class, heatmap = predict_image(
                         st.session_state.model, 
                         processed_img
@@ -157,7 +146,6 @@ elif page == "Upload MRI":
                     st.session_state.tumor_type = tumor_class
                     st.session_state.tumor_confidence = confidence
                     
-                    # Create visualization
                     if st.session_state.tumor_detected:
                         visualization = visualize_tumor(np.array(image), heatmap)
                         st.session_state.visualization = visualization
@@ -167,7 +155,6 @@ elif page == "Upload MRI":
                 except Exception as e:
                     st.error(f"Error processing image: {str(e)}")
 
-# Results page
 elif page == "Results":
     st.header("Analysis Results")
     
@@ -192,17 +179,15 @@ elif page == "Results":
                 st.subheader("Processed Scan")
                 st.image(st.session_state.original_image, use_column_width=True)
         
-        # Results box
         st.subheader("Diagnostic Results")
         
         if st.session_state.tumor_detected:
             tumor_type = st.session_state.tumor_type
             if tumor_type is None:
-                tumor_type = "1"  # Default to Glioma if None
+                tumor_type = "1"  
             elif isinstance(tumor_type, int):
                 tumor_type = str(tumor_type)
                 
-            # Use a default entry if the key doesn't exist
             default_tumor = {
                 "name": "Unknown Tumor",
                 "description": "A tumor of unknown classification was detected."
@@ -220,7 +205,6 @@ elif page == "Results":
             st.success("✅ No tumor detected in the scan")
             st.markdown(f"**Confidence: {st.session_state.tumor_confidence:.2f}%**")
         
-        # Feedback section for reinforcement learning
         st.subheader("Provide Feedback")
         st.markdown("""
         Your feedback helps our system improve! If you are a medical professional or have 
@@ -249,7 +233,6 @@ elif page == "Results":
         if st.button("Submit Feedback") and not st.session_state.feedback_submitted:
             with st.spinner("Updating model..."):
                 try:
-                    # Update model with feedback
                     update_model_with_feedback(
                         st.session_state.model,
                         st.session_state.processed_image,
@@ -260,7 +243,6 @@ elif page == "Results":
                 except Exception as e:
                     st.error(f"Error updating model: {str(e)}")
 
-# Find Specialists page
 elif page == "Find Specialists":
     st.header("Find Brain Tumor Specialists")
     
@@ -285,7 +267,6 @@ elif page == "Find Specialists":
         if address:
             with st.spinner("Searching for specialists..."):
                 try:
-                    # Find hospitals near the location
                     hospitals = find_nearby_hospitals(address, search_radius)
                     st.session_state.hospitals = hospitals
                     st.session_state.location = address
@@ -299,14 +280,11 @@ elif page == "Find Specialists":
         else:
             st.error("Please enter your location to find specialists.")
     
-    # Display hospitals if available
     if st.session_state.hospitals:
         st.subheader(f"Specialists near {st.session_state.location}")
         
-        # Create map
         m = folium.Map(location=[st.session_state.hospitals[0]['lat'], st.session_state.hospitals[0]['lng']], zoom_start=10)
         
-        # Add markers for each hospital
         for hospital in st.session_state.hospitals:
             folium.Marker(
                 location=[hospital['lat'], hospital['lng']],
@@ -315,10 +293,8 @@ elif page == "Find Specialists":
                 icon=folium.Icon(color='red', icon='plus', prefix='fa')
             ).add_to(m)
         
-        # Display map
         folium_static(m)
         
-        # Display hospitals in a table
         hospital_data = {
             "Name": [h['name'] for h in st.session_state.hospitals],
             "Address": [h['address'] for h in st.session_state.hospitals],
@@ -328,7 +304,6 @@ elif page == "Find Specialists":
         
         st.dataframe(pd.DataFrame(hospital_data))
 
-# Book Appointment page
 elif page == "Book Appointment":
     st.header("Book an Appointment")
     
@@ -336,12 +311,10 @@ elif page == "Book Appointment":
         st.warning("Please find specialists first before booking an appointment.")
     else:
         st.subheader("Select a Hospital")
-        
-        # Hospital selection
+    
         hospital_names = [h['name'] for h in st.session_state.hospitals]
         selected_hospital = st.selectbox("Choose a medical facility", hospital_names)
-        
-        # Get hospital details
+    
         hospital_idx = hospital_names.index(selected_hospital)
         hospital = st.session_state.hospitals[hospital_idx]
         
@@ -352,7 +325,6 @@ elif page == "Book Appointment":
         Phone: {hospital.get('phone', 'N/A')}  
         """)
         
-        # Patient information
         st.subheader("Your Information")
         
         col1, col2 = st.columns(2)
@@ -367,32 +339,27 @@ elif page == "Book Appointment":
             insurance = st.text_input("Insurance Provider (optional)", "")
             policy_number = st.text_input("Policy Number (optional)", "")
         
-        # Appointment details
         st.subheader("Appointment Details")
         
-        # Calculate available dates (next 14 days, excluding weekends)
         today = datetime.now().date()
         available_dates = []
         for i in range(1, 15):
             next_date = today + timedelta(days=i)
-            if next_date.weekday() < 5:  # 0-4 are weekdays
+            if next_date.weekday() < 5: 
                 available_dates.append(next_date)
         
         appointment_date = st.selectbox("Preferred Date", available_dates)
         
-        # Time slots (9 AM to 4 PM, hourly)
         time_slots = [f"{hour}:00" for hour in range(9, 17)]
         appointment_time = st.selectbox("Preferred Time", time_slots)
-        
-        # Reason for visit
+    
         if st.session_state.tumor_detected:
             tumor_type = st.session_state.tumor_type
             if tumor_type is None:
-                tumor_type = "1"  # Default to Glioma if None
+                tumor_type = "1"  
             elif isinstance(tumor_type, int):
                 tumor_type = str(tumor_type)
                 
-            # Use a default entry if the key doesn't exist
             default_tumor = {
                 "name": "Unknown Tumor",
                 "description": "A tumor of unknown classification was detected."
@@ -409,25 +376,18 @@ elif page == "Book Appointment":
         
         reason = st.text_area("Reason for Visit", default_reason, height=100)
         
-        # Additional notes
         notes = st.text_area("Additional Notes or Questions", "", height=100)
         
-        # Agree to terms
         agree = st.checkbox("I confirm that the information provided is accurate and agree to the terms of service")
         
-        # Submit button
         if st.button("Request Appointment", disabled=not agree):
             if not patient_name or not patient_email or not patient_phone:
                 st.error("Please fill in all required fields.")
             else:
-                # In a real app, this would connect to an API to book the appointment
                 with st.spinner("Submitting appointment request..."):
                     try:
-                        # Simulate API call delay
                         import time
                         time.sleep(2)
-                        
-                        # Success message
                         st.success(f"""
                         Appointment request submitted successfully!
                         
@@ -445,7 +405,6 @@ elif page == "Book Appointment":
                     except Exception as e:
                         st.error(f"Error submitting appointment: {str(e)}")
 
-# Footer
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center;">
