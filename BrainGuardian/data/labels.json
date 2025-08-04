@@ -1,0 +1,18 @@
+{
+    "0": {
+        "name": "No Tumor",
+        "description": "No brain tumor detected in the image."
+    },
+    "1": {
+        "name": "Glioma",
+        "description": "A type of tumor that occurs in the brain and spinal cord. Gliomas begin in the glial cells that surround and support nerve cells."
+    },
+    "2": {
+        "name": "Meningioma",
+        "description": "A tumor that arises from the meninges — the membranes that surround your brain and spinal cord. Most meningiomas are noncancerous."
+    },
+    "3": {
+        "name": "Pituitary",
+        "description": "A tumor that develops in the pituitary gland at the base of the brain. Most pituitary tumors are noncancerous (benign)."
+    }
+}
